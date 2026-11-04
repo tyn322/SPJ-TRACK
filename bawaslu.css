@@ -324,6 +324,24 @@ body {
   box-shadow: 0 2px 8px rgba(2, 132, 199, 0.3);
 }
 
+/* Tombol Khusus Export Excel */
+.btn-excel {
+  background: #16a34a;
+  color: white;
+  border: none;
+  padding: 9px 16px;
+  border-radius: var(--radius);
+  font-weight: 600;
+  cursor: pointer;
+  font-size: 13px;
+  transition: var(--transition);
+}
+
+.btn-excel:hover {
+  background: #15803d;
+  box-shadow: 0 2px 8px rgba(22, 163, 74, 0.3);
+}
+
 .btn-sm {
   padding: 6px 12px;
   font-size: 11px;
@@ -408,7 +426,6 @@ body {
   letter-spacing: 0.5px;
 }
 
-/* Perbaikan Jarak Navigasi dan Badge Counter Notifikasi */
 .nav-item {
   width: 100%;
   display: flex;
@@ -430,18 +447,6 @@ body {
 .nav-item.active, .nav-item:hover {
   background: rgba(255, 255, 255, 0.1);
   color: white;
-}
-
-/* Badge Angka Notifikasi/Reminder */
-.nav-item .badge-count,
-.nav-item span.count {
-  background: var(--danger);
-  color: white;
-  font-size: 11px;
-  font-weight: 700;
-  padding: 2px 7px;
-  border-radius: 12px;
-  margin-left: auto;
 }
 
 .sidebar-profile {
@@ -472,7 +477,6 @@ body {
   color: #fff;
 }
 
-/* Main Content Overlay Background Transparan */
 .main-content {
   flex: 1;
   padding: 35px;
@@ -561,6 +565,39 @@ body {
 .panel-header h3 { font-size: 16px; font-weight: 700; }
 .panel-body { padding: 20px; }
 
+/* Grid Rules & Kartu Laporan */
+.rules-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 15px;
+}
+
+.rule-card {
+  background: white;
+  padding: 18px;
+  border-radius: var(--radius);
+  border: 1px solid var(--border-color);
+}
+
+.rule-card h4 {
+  font-size: 13px;
+  font-weight: 700;
+  margin-bottom: 8px;
+  color: var(--text-main);
+}
+
+.rule-val {
+  font-size: 22px;
+  font-weight: 800;
+  color: var(--secondary);
+  margin-bottom: 4px;
+}
+
+.rule-card p {
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
 /* Filter Toolbar */
 .toolbar {
   display: flex;
@@ -600,19 +637,6 @@ th {
   letter-spacing: 0.5px;
 }
 
-/* Penyesuaian Lebar Kolom Tabel */
-td:nth-child(2) {
-  max-width: 280px;
-  line-height: 1.4;
-}
-
-td:last-child {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-  align-items: flex-start;
-}
-
 .badge {
   padding: 4px 10px;
   border-radius: 20px;
@@ -622,7 +646,7 @@ td:last-child {
 }
 
 .b-diajukan { background: #e0f2fe; color: #0369a1; }
-.b-revisi { background: #fef3c7; color: #b45309; }
+.b-perluperbaikan, .b-revisi { background: #fef3c7; color: #b45309; }
 .b-selesai { background: #d1fae5; color: #047857; }
 
 /* ==========================================

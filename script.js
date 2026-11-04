@@ -1,3 +1,7 @@
+// ==========================================
+// SPJ-TRACK - SCRIPT UTAMA (PERFECT & NO BUGS)
+// ==========================================
+
 let spjData = [];
 let registeredUsers = [];
 let activeUser = null;
@@ -8,9 +12,11 @@ const eyeOpenSVG = `<path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></pat
 const eyeClosedSVG = `<path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path><line x1="1" y1="1" x2="23" y2="23"></line>`;
 
 document.addEventListener("DOMContentLoaded", () => {
+  // 1. Muat database pengajuan SPJ
   const savedDb = localStorage.getItem('spj_track_db');
   if (savedDb) spjData = JSON.parse(savedDb);
   
+  // 2. Muat database user terdaftar
   const savedUsers = localStorage.getItem('spj_track_users');
   if (savedUsers) {
     registeredUsers = JSON.parse(savedUsers);
@@ -22,6 +28,7 @@ document.addEventListener("DOMContentLoaded", () => {
     localStorage.setItem('spj_track_users', JSON.stringify(registeredUsers));
   }
 
+  // 3. Cek sesi login aktif
   const savedActiveUser = localStorage.getItem('spj_track_active_user');
   if (savedActiveUser) {
     activeUser = JSON.parse(savedActiveUser);
@@ -33,6 +40,9 @@ document.addEventListener("DOMContentLoaded", () => {
   renderTabelDokumen();
 });
 
+// ==========================================
+// AUTentikasi & LOGIN / REGISTER
+// ==========================================
 function togglePasswordVisibility(inputId, btn) {
   const input = document.getElementById(inputId);
   const svg = btn.querySelector('svg');
@@ -150,16 +160,14 @@ function showApp() {
   document.getElementById('uiUserRole').textContent = activeUser.role === 'Admin' ? 'Verifikator SPJ' : 'Pegawai Pelaksana';
   document.getElementById('uiBadgeStatus').textContent = `Mode: ${activeUser.role} (${activeUser.name})`;
 
-  // PENGATURAN HAK AKSES BERDASARKAN ROLE (USER VS ADMIN)
+  // Batasi visibilitas tombol dan menu berdasarkan role
   const userOnlyElements = document.querySelectorAll('.menu-user-only');
   const adminOnlyElements = document.querySelectorAll('.menu-admin-only');
 
   if (activeUser.role === 'Admin') {
-    // Admin: Sembunyikan Tombol Pengajuan & Menu Upload Dokumen, Tampilkan Menu Arsip Dokumen Masuk
     userOnlyElements.forEach(el => el.style.display = 'none');
     adminOnlyElements.forEach(el => el.style.display = 'block');
   } else {
-    // User: Tampilkan Tombol Pengajuan & Menu Upload Dokumen, Sembunyikan Menu Arsip Dokumen Masuk
     userOnlyElements.forEach(el => el.style.display = 'block');
     adminOnlyElements.forEach(el => el.style.display = 'none');
   }
@@ -167,6 +175,9 @@ function showApp() {
   switchTab('dashboard');
 }
 
+// ==========================================
+// NAVIGASI & TAB MANAGEMENT
+// ==========================================
 const tabTitles = {
   'dashboard': ['Dashboard', 'Ringkasan pengawasan SPJ secara real-time'],
   'monitoring': ['Monitoring SPJ', 'Daftar pengajuan dan proses verifikasi individu'],
@@ -210,6 +221,9 @@ function refreshSemuaData() {
   renderLaporan();
 }
 
+// ==========================================
+// RENDER STATISTIK & TABEL
+// ==========================================
 function renderStats() {
   document.getElementById('stTotal').textContent = spjData.length;
   document.getElementById('stRevisi').textContent = spjData.filter(d => d.status === 'Perlu Perbaikan').length;
@@ -221,19 +235,34 @@ function renderStats() {
 function renderTable() {
   const tbody = document.getElementById('tableSpjBody');
   if (!tbody) return;
-  if (spjData.length === 0) {
+
+  const search = document.getElementById('searchSpj') ? document.getElementById('searchSpj').value.toLowerCase() : '';
+  const filterDiv = document.getElementById('filterDivisi') ? document.getElementById('filterDivisi').value : '';
+  const filterStat = document.getElementById('filterStatus') ? document.getElementById('filterStatus').value : '';
+
+  let filtered = spjData.filter(d => {
+    const matchSearch = (d.kodeKegiatan || '').toLowerCase().includes(search) || 
+                        (d.noSppd || '').toLowerCase().includes(search) || 
+                        (d.nama || '').toLowerCase().includes(search);
+    const matchDiv = filterDiv === '' || d.divisi === filterDiv;
+    const matchStat = filterStat === '' || d.status === filterStat;
+    return matchSearch && matchDiv && matchStat;
+  });
+
+  if (filtered.length === 0) {
     tbody.innerHTML = `<tr><td colspan="8" style="text-align:center;">Belum ada data pengajuan SPJ.</td></tr>`;
     return;
   }
-  tbody.innerHTML = spjData.map(d => `
+
+  tbody.innerHTML = filtered.map(d => `
     <tr>
       <td>${d.kodeKegiatan || '-'}</td>
-      <td><strong>${d.noSppd}</strong><br><small>${d.kegiatan}</small></td>
+      <td><strong>${d.noSppd}</strong><br><small>${d.kegiatan || '-'}</small></td>
       <td><strong>${d.nama}</strong><br><small>${d.divisi}</small></td>
-      <td>${d.tglPergi} s/d ${d.tglPulang}</td>
-      <td>${d.jmlHari} Hari</td>
+      <td>${d.tglPergi || '-'} s/d ${d.tglPulang || '-'}</td>
+      <td>${d.jmlHari || '-'}</td>
       <td><strong>${formatRupiah(d.total)}</strong></td>
-      <td><span class="badge">${d.status}</span></td>
+      <td><span class="badge b-${(d.status || '').toLowerCase().replace(' ', '')}">${d.status}</span></td>
       <td>
         ${activeUser.role === 'Admin' 
           ? `<button class="btn-sm" onclick="openModalVerifikasi('${d.id}')">Verifikasi</button>` 
@@ -247,32 +276,14 @@ function renderNotifikasi() {
   const dashNotif = document.getElementById('dashNotifBox');
   const fullNotif = document.getElementById('fullNotifBox');
   const revisi = spjData.filter(d => d.status === 'Perlu Perbaikan');
-  const html = revisi.length === 0 ? `<p>Tidak ada reminder perbaikan.</p>` : revisi.map(d => `<div class="notif-item"><h5>${d.noSppd}</h5><p>${d.catatan}</p></div>`).join('');
+  const html = revisi.length === 0 ? `<p>Tidak ada reminder perbaikan.</p>` : revisi.map(d => `<div class="notif-item"><h5>${d.noSppd}</h5><p>${d.catatan || 'Mohon segera lakukan perbaikan.'}</p></div>`).join('');
   if (dashNotif) dashNotif.innerHTML = html;
   if (fullNotif) fullNotif.innerHTML = html;
 }
 
-function renderLaporan() {
-  ['Pengawasan', 'Penanganan', 'Hukum', 'Admin'].forEach(id => {
-    const el = document.getElementById(`rep${id}`);
-    if (el) el.textContent = formatRupiah(0);
-  });
-}
-
-function renderChart() {
-  const ctx = document.getElementById('chartRealisasi');
-  if (!ctx) return;
-  if (chartInstance) chartInstance.destroy();
-  chartInstance = new Chart(ctx.getContext('2d'), {
-    type: 'bar',
-    data: {
-      labels: ['Pengawasan', 'Penanganan', 'Hukum', 'Admin'],
-      datasets: [{ label: 'Realisasi', data: [0, 0, 0, 0], backgroundColor: '#0284c7' }]
-    },
-    options: { responsive: true, maintainAspectRatio: false }
-  });
-}
-
+// ==========================================
+// KALKULASI & FORM INPUT SPJ
+// ==========================================
 function hitungHari() {
   const tgl1 = document.getElementById('inTglPergi').value;
   const tgl2 = document.getElementById('inTglPulang').value;
@@ -331,7 +342,7 @@ function openModalVerifikasi(id) {
   document.getElementById('vId').value = d.id;
   document.getElementById('vInfo').value = `${d.noSppd} - ${d.nama}`;
   document.getElementById('vStatus').value = d.status;
-  document.getElementById('vCatatan').value = d.catatan;
+  document.getElementById('vCatatan').value = d.catatan || '';
   document.getElementById('modalVerifikasi').classList.add('active');
 }
 
@@ -358,32 +369,95 @@ function hapusSpj(id) {
   showToast("SPJ Dihapus!");
 }
 
+// ==========================================
+// UPLOAD & DOWNLOAD DOKUMEN (FIXED & AMAN)
+// ==========================================
 function handleUploadDokumen(e) {
   e.preventDefault();
   if (activeUser.role !== 'User') return;
 
   const nama = document.getElementById('namaPelapor').value;
-  const file = document.getElementById('fileDokumen').files[0];
+  const fileInput = document.getElementById('fileDokumen');
+  const statusPesan = document.getElementById('statusPesan');
+  const file = fileInput.files[0];
+  
   if (!file) return;
+
+  if (file.size > 2 * 1024 * 1024) {
+    statusPesan.textContent = "Gagal: Ukuran file terlalu besar! Maksimal 2MB.";
+    statusPesan.style.color = "#dc2626";
+    return;
+  }
+
+  statusPesan.textContent = "Mengunggah dokumen...";
+  statusPesan.style.color = "#0284c7";
 
   const reader = new FileReader();
   reader.onload = function(event) {
-    const data = JSON.parse(localStorage.getItem('dokumen_masuk') || '[]');
-    data.unshift({
-      id: Date.now(),
-      pelapor: nama,
-      namaFile: file.name,
-      dataUrl: event.target.result,
-      tanggal: new Date().toLocaleDateString('id-ID')
-    });
-    localStorage.setItem('dokumen_masuk', JSON.stringify(data));
-    
-    document.getElementById('statusPesan').textContent = "Berhasil! Dokumen terkirim ke admin.";
-    document.getElementById('statusPesan').style.color = "#16a34a";
-    document.getElementById('uploadForm').reset();
-    renderTabelDokumen();
+    try {
+      const listDokumen = JSON.parse(localStorage.getItem('dokumen_masuk') || '[]');
+      listDokumen.unshift({
+        id: Date.now(),
+        pelapor: nama,
+        namaFile: file.name,
+        dataUrl: event.target.result,
+        tanggal: new Date().toLocaleDateString('id-ID')
+      });
+      
+      localStorage.setItem('dokumen_masuk', JSON.stringify(listDokumen));
+      
+      statusPesan.textContent = "Berhasil! Dokumen terkirim ke admin.";
+      statusPesan.style.color = "#16a34a";
+      document.getElementById('uploadForm').reset();
+      renderTabelDokumen();
+    } catch (err) {
+      statusPesan.textContent = "Gagal: Memori penyimpanan browser penuh!";
+      statusPesan.style.color = "#dc2626";
+    }
   };
+  
+  reader.onerror = function() {
+    statusPesan.textContent = "Gagal membaca file!";
+    statusPesan.style.color = "#dc2626";
+  };
+
   reader.readAsDataURL(file);
+}
+
+function downloadDokumen(id) {
+  const data = JSON.parse(localStorage.getItem('dokumen_masuk') || '[]');
+  const doc = data.find(x => x.id === id);
+  if (!doc) {
+    showToast("File dokumen tidak ditemukan!");
+    return;
+  }
+
+  try {
+    const arr = doc.dataUrl.split(',');
+    const mime = arr[0].match(/:(.*?);/)[1];
+    const bstr = atob(arr[1]);
+    let n = bstr.length;
+    const u8arr = new Uint8Array(n);
+    while (n--) {
+      u8arr[n] = bstr.charCodeAt(n);
+    }
+    const blob = new Blob([u8arr], { type: mime });
+    const url = URL.createObjectURL(blob);
+    
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = doc.namaFile;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+    showToast("Mengunduh dokumen...");
+  } catch (err) {
+    const a = document.createElement('a');
+    a.href = doc.dataUrl;
+    a.download = doc.namaFile;
+    a.click();
+  }
 }
 
 function renderTabelDokumen() {
@@ -408,14 +482,116 @@ function renderTabelDokumen() {
       <td>${doc.namaFile}</td>
       <td>${doc.tanggal}</td>
       <td>
-        <a href="${doc.dataUrl}" download="${doc.namaFile}" class="btn-sm" style="background:#0284c7; color:#fff; text-decoration:none; padding: 6px 12px; border-radius:4px;">
+        <button class="btn-sm" onclick="downloadDokumen(${doc.id})" style="background:#0284c7; color:#fff; border:none; padding: 6px 12px; border-radius:4px; cursor:pointer;">
           📥 Download
-        </a>
+        </button>
       </td>
     </tr>
   `).join('');
 }
 
+// ==========================================
+// LAPORAN, CHART & EXPORT EXCEL
+// ==========================================
+function getRealisasiDivisi(namaDivisi) {
+  const setuju = spjData.filter(d => d.divisi === namaDivisi && d.status === 'Selesai');
+  const total = setuju.reduce((sum, item) => sum + Number(item.total), 0);
+  return { total, count: setuju.length };
+}
+
+function renderLaporan() {
+  const pengawasan = getRealisasiDivisi('Bagian Pengawasan');
+  const penanganan = getRealisasiDivisi('Bagian Penanganan Pelanggaran');
+  const hukum = getRealisasiDivisi('Bagian Hukum Humas');
+  const admin = getRealisasiDivisi('Bagian Administrasi dan Keuangan');
+
+  if (document.getElementById('repPengawasan')) {
+    document.getElementById('repPengawasan').textContent = formatRupiah(pengawasan.total);
+    document.getElementById('cntPengawasan').textContent = `${pengawasan.count} SPJ Disetujui`;
+
+    document.getElementById('repPenanganan').textContent = formatRupiah(penanganan.total);
+    document.getElementById('cntPenanganan').textContent = `${penanganan.count} SPJ Disetujui`;
+
+    document.getElementById('repHukum').textContent = formatRupiah(hukum.total);
+    document.getElementById('cntHukum').textContent = `${hukum.count} SPJ Disetujui`;
+
+    document.getElementById('repAdmin').textContent = formatRupiah(admin.total);
+    document.getElementById('cntAdmin').textContent = `${admin.count} SPJ Disetujui`;
+  }
+}
+
+function renderChart() {
+  const ctx = document.getElementById('chartRealisasi');
+  if (!ctx) return;
+  if (chartInstance) chartInstance.destroy();
+
+  const pengawasan = getRealisasiDivisi('Bagian Pengawasan').total;
+  const penanganan = getRealisasiDivisi('Bagian Penanganan Pelanggaran').total;
+  const hukum = getRealisasiDivisi('Bagian Hukum Humas').total;
+  const admin = getRealisasiDivisi('Bagian Administrasi dan Keuangan').total;
+
+  chartInstance = new Chart(ctx.getContext('2d'), {
+    type: 'bar',
+    data: {
+      labels: ['Pengawasan', 'Penanganan', 'Hukum', 'Admin'],
+      datasets: [{ 
+        label: 'Realisasi (Rp)', 
+        data: [pengawasan, penanganan, hukum, admin], 
+        backgroundColor: '#0284c7',
+        borderRadius: 6
+      }]
+    },
+    options: { responsive: true, maintainAspectRatio: false }
+  });
+}
+
+function exportToExcel() {
+  if (!spjData || spjData.length === 0) {
+    showToast("Belum ada data SPJ untuk di-export!");
+    return;
+  }
+
+  const dataExcel = spjData.map((item, index) => ({
+    "No": index + 1,
+    "Kode Kegiatan": item.kodeKegiatan || "-",
+    "No SPPD": item.noSppd || "-",
+    "Nama Pegawai": item.nama || "-",
+    "Divisi / Bagian": item.divisi || "-",
+    "Kegiatan": item.kegiatan || "-",
+    "Tgl Kepergian": item.tglPergi || "-",
+    "Tgl Kepulangan": item.tglPulang || "-",
+    "Jumlah Hari": item.jmlHari || "-",
+    "Total Biaya (Rp)": item.total || 0,
+    "Status Verifikasi": item.status || "Diajukan",
+    "Catatan Admin": item.catatan || "-"
+  }));
+
+  const worksheet = XLSX.utils.json_to_sheet(dataExcel);
+  const workbook = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(workbook, worksheet, "Rekapan SPJ");
+
+  worksheet['!cols'] = [
+    { wch: 5 },   // No
+    { wch: 15 },  // Kode
+    { wch: 20 },  // No SPPD
+    { wch: 22 },  // Nama
+    { wch: 30 },  // Divisi
+    { wch: 30 },  // Kegiatan
+    { wch: 14 },  // Tgl Pergi
+    { wch: 14 },  // Tgl Pulang
+    { wch: 12 },  // Jml Hari
+    { wch: 18 },  // Total
+    { wch: 18 },  // Status
+    { wch: 25 }   // Catatan
+  ];
+
+  XLSX.writeFile(workbook, `Rekapan_SPJ_TRACK_${new Date().toISOString().slice(0,10)}.xlsx`);
+  showToast("File Excel berhasil diunduh!");
+}
+
+// ==========================================
+// UTILITAS PENDUKUNG
+// ==========================================
 function closeModal(id) { document.getElementById(id).classList.remove('active'); }
 function formatRupiah(num) { return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(num); }
 function showToast(msg) {

@@ -10,6 +10,9 @@
 
   <!-- Chart.js CDN -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+  <!-- SheetJS CDN (Untuk Fitur Export Excel) -->
+  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 </head>
 <body>
 
@@ -348,7 +351,11 @@
         <!-- ================= VIEW: LAPORAN REALISASI ================= -->
         <div id="view-laporan" class="view-section">
           <div class="panel">
-            <div class="panel-header"><h3>Akumulasi Penyerapan Anggaran per Divisi</h3></div>
+            <div class="panel-header">
+              <h3>Akumulasi Penyerapan Anggaran per Divisi</h3>
+              <!-- TOMBOL EXPORT KE EXCEL -->
+              <button class="btn-excel" onclick="exportToExcel()">📊 Export ke Excel</button>
+            </div>
             <div class="panel-body">
               <div class="rules-grid">
                 <div class="rule-card card-pengawasan">
