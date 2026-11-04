@@ -1,0 +1,509 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>SPJ-TRACK | Monitoring, Verifikasi & Realisasi SPJ</title>
+
+  <!-- Link CSS Eksternal -->
+  <link rel="stylesheet" href="bawaslu.css" />
+
+  <!-- Chart.js CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+
+  <!-- =========================================================
+       HALAMAN AUTHENTICATION (LOGIN & REGISTER)
+  ========================================================= -->
+  <div id="authPage">
+    <div class="auth-banner">
+      <div class="brand-logo">
+        <div class="icon">S</div> SPJ-TRACK
+      </div>
+      <h1>SPJ Terpantau, Verifikasi Cepat, Realisasi Terkendali.</h1>
+      <p class="tagline">Platform Manajemen & Verifikasi SPJ Perjalanan Dinas Terintegrasi</p>
+      <p class="desc">Sistem monitoring real-time dengan reminder tenggat waktu perbaikan otomatis untuk mempermudah kepatuhan pelaporan anggaran secara transparan.</p>
+    </div>
+    
+    <div class="auth-form-wrapper">
+      <div class="auth-box">
+        
+        <div class="auth-tabs">
+          <button type="button" class="auth-tab-btn active" id="tabBtnLogin" onclick="switchAuthTab('login')">Masuk (Login)</button>
+          <button type="button" class="auth-tab-btn" id="tabBtnRegister" onclick="switchAuthTab('register')">Daftar Akun Baru</button>
+        </div>
+
+        <div class="error-msg" id="loginError">Pesan Error</div>
+
+        <!-- FORM LOGIN -->
+        <div id="formLoginContainer">
+          <h2>Selamat Datang Kembali</h2>
+          <p class="auth-subtitle">Gunakan akun terdaftar atau opsi Login Cepat di bawah ini.</p>
+          
+          <div class="quick-logins">
+            <button class="quick-btn" onclick="quickLogin('User', 'Budi Santoso', 'budi.santoso@gmail.com')">
+              <span>Login Cepat</span>
+              <strong>Budi Santoso</strong>
+              <small>Role: User (Pelaksana)</small>
+            </button>
+            <button class="quick-btn" onclick="quickLogin('Admin', 'Siti Aminah', 'siti.aminah@gmail.com')">
+              <span>Login Cepat</span>
+              <strong>Siti Aminah</strong>
+              <small>Role: Admin (Verifikator)</small>
+            </button>
+          </div>
+
+          <div class="divider"><span>ATAU LOGIN MANUAL</span></div>
+
+          <form id="loginForm" onsubmit="handleLogin(event)">
+            <div class="role-selector">
+              <button type="button" id="btnRoleUser" class="role-btn active" onclick="setLoginRole('User')">User (Pelaksana)</button>
+              <button type="button" id="btnRoleAdmin" class="role-btn" onclick="setLoginRole('Admin')">Admin (Verifikator)</button>
+            </div>
+            <input type="hidden" id="loginRole" value="User" />
+
+            <div class="form-group">
+              <label>Email Akun (Wajib @gmail.com)</label>
+              <input type="email" id="loginEmail" placeholder="contoh: nama@gmail.com" required />
+            </div>
+
+            <div class="form-group">
+              <label>Kata Sandi</label>
+              <div class="password-wrapper">
+                <input type="password" id="loginPassword" placeholder="••••••••" required />
+                <button type="button" class="toggle-pwd-btn" onclick="togglePasswordVisibility('loginPassword', this)" title="Tampilkan/Sembunyikan Kata Sandi">
+                  <svg class="eye-icon" viewBox="0 0 24 24">
+                    <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                    <circle cx="12" cy="12" r="3"></circle>
+                  </svg>
+                </button>
+              </div>
+            </div>
+
+            <button type="submit" class="btn-submit">Masuk ke Sistem SPJ-TRACK</button>
+          </form>
+        </div>
+
+        <!-- FORM REGISTER -->
+        <div id="formRegisterContainer" style="display:none;">
+          <h2>Pendaftaran Akun Baru</h2>
+          <p class="auth-subtitle">Buat akun untuk dapat membuat dan memantau pengajuan SPJ.</p>
+
+          <form id="registerForm" onsubmit="handleRegister(event)">
+            <div class="form-group">
+              <label>Nama Lengkap & Gelar</label>
+              <input type="text" id="regName" placeholder="Contoh: Ahmad Subagja, S.T." required />
+            </div>
+
+            <div class="form-group">
+              <label>Divisi / Bagian Unit</label>
+              <select id="regDivisi" required>
+                <option value="Bagian Pengawasan">Bagian Pengawasan</option>
+                <option value="Bagian Penanganan Pelanggaran">Bagian Penanganan Pelanggaran</option>
+                <option value="Bagian Hukum Humas">Bagian Hukum Humas</option>
+                <option value="Bagian Administrasi dan Keuangan">Bagian Administrasi dan Keuangan</option>
+              </select>
+            </div>
+
+            <div class="form-group">
+              <label>Hak Akses / Role</label>
+              <select id="regRole" required>
+                <option value="User">User (Pelaksana Perjalanan)</option>
+                <option value="Admin">Admin (Verifikator SPJ)</option>
+              </select>
+            </div>
+
+            <div class="form-group">
+              <label>Email Baru (Wajib @gmail.com)</label>
+              <input type="email" id="regEmail" placeholder="contoh: nama.anda@gmail.com" required />
+            </div>
+
+            <div class="form-group">
+              <label>Kata Sandi</label>
+              <div class="password-wrapper">
+                <input type="password" id="regPassword" placeholder="Minimum 6 Karakter" minlength="6" required />
+                <button type="button" class="toggle-pwd-btn" onclick="togglePasswordVisibility('regPassword', this)" title="Tampilkan/Sembunyikan Kata Sandi">
+                  <svg class="eye-icon" viewBox="0 0 24 24">
+                    <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                    <circle cx="12" cy="12" r="3"></circle>
+                  </svg>
+                </button>
+              </div>
+            </div>
+
+            <button type="submit" class="btn-submit btn-reg-submit">Daftar & Buat Akun</button>
+          </form>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- =========================================================
+       HALAMAN APLIKASI UTAMA
+  ========================================================= -->
+  <div id="appPage">
+    <div class="layout">
+      
+      <!-- SIDEBAR -->
+      <div class="sidebar">
+        <div class="sidebar-header">
+          <div class="icon">S</div> SPJ-TRACK
+        </div>
+        <div class="sidebar-nav">
+          <div class="nav-label">Menu Utama</div>
+          <button class="nav-item active" onclick="switchTab('dashboard', this)">▤ Dashboard</button>
+          <button class="nav-item" onclick="switchTab('monitoring', this)">📋 Monitoring SPJ</button>
+          <button class="nav-item" onclick="switchTab('notifikasi', this)" id="navBtnNotif">🔔 Notifikasi & Reminder</button>
+          
+          <!-- MENU KHUSUS USER -->
+          <button class="nav-item menu-user-only" onclick="switchTab('upload', this)">📤 Upload Dokumen</button>
+          
+          <!-- MENU KHUSUS ADMIN -->
+          <button class="nav-item menu-admin-only" onclick="switchTab('arsip', this)" style="display:none;">📁 Dokumen Masuk (Admin)</button>
+          
+          <div class="nav-label">Informasi & Laporan</div>
+          <button class="nav-item" onclick="switchTab('laporan', this)">📈 Laporan Realisasi</button>
+          <button class="nav-item" onclick="switchTab('regulasi', this)">⚖ Kewajiban & Regulasi</button>
+        </div>
+        <div class="sidebar-profile">
+          <div class="profile-info">
+            <h4 id="uiUserName">Nama Pegawai</h4>
+            <p id="uiUserRole">Role Pengguna</p>
+          </div>
+          <button class="btn-logout" onclick="logout()">Keluar Aplikasi</button>
+        </div>
+      </div>
+
+      <!-- MAIN CONTENT -->
+      <div class="main-content">
+        <div class="top-bar">
+          <div class="page-title">
+            <h2 id="pageTitle">Dashboard</h2>
+            <p id="pageSubtitle">Ringkasan pengawasan SPJ Perjalanan Dinas secara real-time</p>
+          </div>
+          <div class="user-badge">
+            <div class="dot"></div> <span id="uiBadgeStatus">Mode: User</span>
+          </div>
+        </div>
+
+        <!-- ================= VIEW: DASHBOARD ================= -->
+        <div id="view-dashboard" class="view-section active">
+          <div class="stats-container">
+            <div class="stat-card s-blue">
+              <span class="stat-label">Total SPJ Diajukan</span>
+              <span class="stat-val" id="stTotal">0</span>
+            </div>
+            <div class="stat-card s-orange">
+              <span class="stat-label">Perlu Perbaikan</span>
+              <span class="stat-val" id="stRevisi">0</span>
+            </div>
+            <div class="stat-card s-green">
+              <span class="stat-label">Selesai Diverifikasi</span>
+              <span class="stat-val" id="stSelesai">0</span>
+            </div>
+            <div class="stat-card s-red">
+              <span class="stat-label">Realisasi Anggaran</span>
+              <span class="stat-val stat-realisasi" id="stRealisasi">Rp 0</span>
+            </div>
+          </div>
+
+          <div class="grid-2">
+            <div class="panel">
+              <div class="panel-header"><h3>Alur Standar Pengajuan & Verifikasi</h3></div>
+              <div class="panel-body">
+                <div class="timeline">
+                  <div class="tl-item">
+                    <h4>1. Pengajuan SPJ Individu</h4>
+                    <p>Pegawai menginput No SPPD, rincian biaya, serta durasi tanggal kepergian & kepulangan.</p>
+                  </div>
+                  <div class="tl-item">
+                    <h4>2. Pemeriksaan Rincian & Berkas</h4>
+                    <p>Verifikator memeriksa keabsahan checklist berkas fisik serta besaran nominal pengeluaran riil.</p>
+                  </div>
+                  <div class="tl-item">
+                    <h4>3. Reminder Batas Waktu 2 Hari Perbaikan</h4>
+                    <p>Sistem secara otomatis menampilkan pengingat waktu jika status berkas dikembalikan untuk diperbaiki.</p>
+                  </div>
+                  <div class="tl-item">
+                    <h4>4. Finalisasi & Pencairan Realisasi</h4>
+                    <p>SPJ disetujui, status berubah 'Selesai', dan nominal akumulasi masuk ke Laporan Realisasi secara otomatis.</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+            
+            <div class="panel">
+              <div class="panel-header"><h3>Reminder & Notifikasi Perbaikan Urgent</h3></div>
+              <div class="panel-body" id="dashNotifBox"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ================= VIEW: MONITORING ================= -->
+        <div id="view-monitoring" class="view-section">
+          <div class="panel">
+            <div class="panel-header">
+              <h3>Daftar Pengajuan SPJ Perjalanan Dinas Individu</h3>
+              <!-- TOMBOL AJUKAN SPJ HANYA MUNCUL DI USER -->
+              <button class="btn-action menu-user-only" id="btnAjukan" onclick="openModalAjukan()">+ Ajukan SPJ Baru</button>
+            </div>
+            <div class="panel-body">
+              <div class="toolbar">
+                <input type="text" id="searchSpj" placeholder="Cari Kode, No SPPD atau Nama..." oninput="renderTable()" />
+                <select id="filterDivisi" onchange="renderTable()">
+                  <option value="">Semua Bagian / Divisi</option>
+                  <option value="Bagian Pengawasan">Bagian Pengawasan</option>
+                  <option value="Bagian Penanganan Pelanggaran">Bagian Penanganan Pelanggaran</option>
+                  <option value="Bagian Hukum Humas">Bagian Hukum Humas</option>
+                  <option value="Bagian Administrasi dan Keuangan">Bagian Administrasi dan Keuangan</option>
+                </select>
+                <select id="filterStatus" onchange="renderTable()">
+                  <option value="">Semua Status Verifikasi</option>
+                  <option value="Diajukan">Diajukan</option>
+                  <option value="Perlu Perbaikan">Perlu Perbaikan</option>
+                  <option value="Selesai">Selesai</option>
+                </select>
+              </div>
+
+              <div class="table-responsive">
+                <table>
+                  <thead>
+                    <tr>
+                      <th>Kode Kegiatan</th>
+                      <th>No SPPD / Kegiatan</th>
+                      <th>Nama Pegawai (Individu)</th>
+                      <th>Tanggal (Pergi - Pulang)</th>
+                      <th>Lama (Hari)</th>
+                      <th>Akumulasi Biaya</th>
+                      <th>Status & Reminder Waktu</th>
+                      <th>Aksi Navigasi</th>
+                    </tr>
+                  </thead>
+                  <tbody id="tableSpjBody"></tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ================= VIEW: NOTIFIKASI ================= -->
+        <div id="view-notifikasi" class="view-section">
+          <div class="panel">
+            <div class="panel-header"><h3>Pusat Reminder & Tindak Lanjut Perbaikan SPJ</h3></div>
+            <div class="panel-body" id="fullNotifBox"></div>
+          </div>
+        </div>
+
+        <!-- ================= VIEW: UPLOAD DOKUMEN (KHUSUS USER) ================= -->
+        <div id="view-upload" class="view-section">
+          <div class="panel" style="max-width: 700px; margin: 0 auto;">
+            <div class="panel-header"><h3>Form Upload Dokumen SPJ</h3></div>
+            <div class="panel-body">
+              <p style="margin-bottom: 20px; color: #555;">Gunakan form di bawah ini untuk mengunggah dokumen pendukung atau evidence langsung ke sistem admin.</p>
+              
+              <form id="uploadForm" onsubmit="handleUploadDokumen(event)">
+                <div class="form-group" style="margin-bottom: 15px;">
+                  <label for="namaPelapor" style="display: block; margin-bottom: 5px; font-weight: bold;">Nama / Keterangan:</label>
+                  <input type="text" id="namaPelapor" name="namaPelapor" required placeholder="Masukkan nama..." style="width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 6px;" />
+                </div>
+                
+                <div class="form-group" style="margin-bottom: 20px;">
+                  <label for="fileDokumen" style="display: block; margin-bottom: 5px; font-weight: bold;">Pilih Dokumen (PDF/Foto):</label>
+                  <input type="file" id="fileDokumen" name="fileDokumen" accept=".pdf,.jpg,.png,.jpeg" required style="width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 6px;" />
+                </div>
+
+                <button type="submit" class="btn-action" style="width: 100%; padding: 12px; cursor: pointer;">Kirim ke Admin</button>
+              </form>
+              <p id="statusPesan" style="margin-top: 15px; font-weight: bold; text-align: center;"></p>
+            </div>
+          </div>
+        </div>
+
+        <!-- ================= VIEW: DOKUMEN MASUK (KHUSUS ADMIN) ================= -->
+        <div id="view-arsip" class="view-section">
+          <div class="panel">
+            <div class="panel-header"><h3>📁 Daftar Dokumen Masuk (Admin)</h3></div>
+            <div class="panel-body">
+              <div class="table-responsive">
+                <table>
+                  <thead>
+                    <tr>
+                      <th>Nama Pelapor</th>
+                      <th>Nama File</th>
+                      <th>Tanggal Upload</th>
+                      <th>Aksi Download</th>
+                    </tr>
+                  </thead>
+                  <tbody id="tabelDokumenMasuk">
+                    <!-- Data dokumen yang di-upload akan tampil di sini -->
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ================= VIEW: LAPORAN REALISASI ================= -->
+        <div id="view-laporan" class="view-section">
+          <div class="panel">
+            <div class="panel-header"><h3>Akumulasi Penyerapan Anggaran per Divisi</h3></div>
+            <div class="panel-body">
+              <div class="rules-grid">
+                <div class="rule-card card-pengawasan">
+                  <h4>Bagian Pengawasan</h4>
+                  <p class="rule-val" id="repPengawasan">Rp 0</p>
+                  <p id="cntPengawasan">0 SPJ Disetujui</p>
+                </div>
+                <div class="rule-card card-penanganan">
+                  <h4>Bagian Penanganan Pelanggaran</h4>
+                  <p class="rule-val" id="repPenanganan">Rp 0</p>
+                  <p id="cntPenanganan">0 SPJ Disetujui</p>
+                </div>
+                <div class="rule-card card-hukum">
+                  <h4>Bagian Hukum Humas</h4>
+                  <p class="rule-val" id="repHukum">Rp 0</p>
+                  <p id="cntHukum">0 SPJ Disetujui</p>
+                </div>
+                <div class="rule-card card-admin">
+                  <h4>Bagian Administrasi dan Keuangan</h4>
+                  <p class="rule-val" id="repAdmin">Rp 0</p>
+                  <p id="cntAdmin">0 SPJ Disetujui</p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="panel">
+            <div class="panel-header"><h3>Diagram Realisasi Capaian Anggaran (Visual)</h3></div>
+            <div class="panel-body">
+              <div class="chart-container">
+                <canvas id="chartRealisasi"></canvas>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ================= VIEW: REGULASI ================= -->
+        <div id="view-regulasi" class="view-section">
+          <div class="panel">
+            <div class="panel-header"><h3>Kewajiban & Ketentuan Regulasi Pengajuan SPJ</h3></div>
+            <div class="panel-body">
+              <div class="rules-grid">
+                <div class="rule-card">
+                  <h4>⏰ Batas Waktu 5 Hari Kerja</h4>
+                  <p>Pengajuan kelengkapan bukti SPJ wajib diinput ke sistem selambat-lambatnya 5 hari kerja setelah tanggal kepulangan perjalanan dinas.</p>
+                </div>
+                <div class="rule-card">
+                  <h4>⚠️ Reminder Perbaikan Maks 2 Hari</h4>
+                  <p>Sistem memberikan reminder otomatis apabila status dokumen berada pada tahap Perlu Perbaikan.</p>
+                </div>
+                <div class="rule-card">
+                  <h4>📄 Berkas Lampiran Wajib</h4>
+                  <p>Surat Tugas, SPPD Cap Basah, Tiket Pergi & Pulang, Transportasi Lokal, Hotel, serta Laporan Hasil Kegiatan.</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL PENGAJUAN SPJ -->
+  <div class="modal-overlay" id="modalAjukan">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3 id="modalAjukanTitle">Form Pengajuan SPJ Individu</h3>
+        <button class="close-btn" onclick="closeModal('modalAjukan')">&times;</button>
+      </div>
+      <div class="modal-body">
+        <form id="formAjukan" onsubmit="simpanSPJ(event)">
+          <input type="hidden" id="inEditId" value="" />
+          <div class="grid-2">
+            <div class="form-group"><label>Kode Kegiatan</label><input type="text" id="inKodeKegiatan" required /></div>
+            <div class="form-group"><label>No. SPPD</label><input type="text" id="inNoSppd" required /></div>
+          </div>
+          <div class="grid-2">
+            <div class="form-group"><label>Nama Pegawai</label><input type="text" id="inNamaPegawai" required /></div>
+            <div class="form-group">
+              <label>Divisi</label>
+              <select id="inDivisi" required>
+                <option value="Bagian Pengawasan">Bagian Pengawasan</option>
+                <option value="Bagian Penanganan Pelanggaran">Bagian Penanganan Pelanggaran</option>
+                <option value="Bagian Hukum Humas">Bagian Hukum Humas</option>
+                <option value="Bagian Administrasi dan Keuangan">Bagian Administrasi dan Keuangan</option>
+              </select>
+            </div>
+          </div>
+          <div class="form-group"><label>Nama Kegiatan</label><input type="text" id="inKegiatan" required /></div>
+          <div class="grid-2">
+            <div class="form-group"><label>Tgl. Kepergian</label><input type="date" id="inTglPergi" onchange="hitungHari()" required /></div>
+            <div class="form-group"><label>Tgl. Kepulangan</label><input type="date" id="inTglPulang" onchange="hitungHari()" required /></div>
+          </div>
+          <div class="form-group"><label>Jumlah Hari</label><input type="text" id="inJmlHari" class="input-readonly input-center" readonly value="0 Hari" /></div>
+          <div class="calc-box">
+            <h4>Rincian Nominal Pengeluaran</h4>
+            <div class="grid-2">
+              <div class="form-group"><label>Tiket Pergi (Rp)</label><input type="number" id="inBiayaTiketPergi" value="0" oninput="hitungTotal()" required /></div>
+              <div class="form-group"><label>Tiket Pulang (Rp)</label><input type="number" id="inBiayaTiketPulang" value="0" oninput="hitungTotal()" required /></div>
+              <div class="form-group"><label>Transport Lokal (Rp)</label><input type="number" id="inBiayaTransport" value="0" oninput="hitungTotal()" required /></div>
+              <div class="form-group"><label>Hotel (Rp)</label><input type="number" id="inBiayaHotel" value="0" oninput="hitungTotal()" required /></div>
+              <div class="form-group"><label>Uang Harian (Rp)</label><input type="number" id="inUangHarian" value="0" oninput="hitungTotal()" required /></div>
+              <div class="form-group"><label>Representasi (Rp)</label><input type="number" id="inRepresentasi" value="0" oninput="hitungTotal()" required /></div>
+            </div>
+            <div class="form-group form-total">
+              <label class="lbl-total">TOTAL:</label>
+              <input type="text" id="inTotalBiayaView" class="input-total" readonly value="Rp 0" />
+            </div>
+          </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn-action btn-cancel" onclick="closeModal('modalAjukan')">Batal</button>
+        <button type="submit" class="btn-action">Simpan & Kirim</button>
+      </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- MODAL VERIFIKASI ADMIN -->
+  <div class="modal-overlay" id="modalVerifikasi">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3>Verifikasi Kelengkapan SPJ (Admin)</h3>
+        <button class="close-btn" onclick="closeModal('modalVerifikasi')">&times;</button>
+      </div>
+      <div class="modal-body">
+        <form id="formVerifikasi" onsubmit="simpanVerifikasi(event)">
+          <input type="hidden" id="vId" />
+          <div class="form-group"><label>Info SPPD</label><input type="text" id="vInfo" class="input-readonly input-bold" readonly /></div>
+          <div class="form-group">
+            <label>Keputusan Status</label>
+            <select id="vStatus">
+              <option value="Diajukan">Diajukan</option>
+              <option value="Perlu Perbaikan">Perlu Perbaikan</option>
+              <option value="Selesai">Selesai (Disetujui)</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Catatan Admin</label>
+            <textarea id="vCatatan" rows="3"></textarea>
+          </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn-action btn-cancel" onclick="closeModal('modalVerifikasi')">Batal</button>
+        <button type="submit" class="btn-action">Simpan</button>
+      </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- TOAST -->
+  <div id="toast" class="toast">Notifikasi</div>
+
+  <!-- SCRIPT JS -->
+  <script src="script.js"></script>
+</body>
+</html>
